@@ -62,6 +62,52 @@ pub fn diagnost_power_consumption(reports: &Vec<String>) -> u64 {
     gamma_rate * epsilon_rate
 }
 
+fn recursive_find_number_with_average_bytes(average: &String, reports: &Vec<String>, column_checker: usize) -> (usize, Vec<String>) {
+    if reports.len() < 3 {
+        return (column_checker, reports.to_vec());
+    }
+
+    let new_reports = reports.into_iter()
+        .filter(|report| {
+            report.chars().nth(column_checker) == average.chars().nth(column_checker)
+        })
+        .cloned()
+        .collect();
+
+    recursive_find_number_with_average_bytes(average, &new_reports, column_checker + 1)
+}
+
+pub fn diagnost_life_support(reports: &Vec<String>) -> u64 {
+    let oxygen_generator_average_bytes = find_bit_that_is_average_each_column(reports);
+    let (oxygen_last_column, oxygen_report) = recursive_find_number_with_average_bytes(&oxygen_generator_average_bytes, reports, 0);
+
+    let help_oxygen = match oxygen_report.len() {
+        1 => oxygen_report.first().unwrap(),
+        _ => oxygen_report.iter()
+            .find(|report| report.chars().nth(oxygen_last_column) == Some('1'))
+            .unwrap()
+    };
+
+    let oxygen_rating = binary_to_decimal(help_oxygen.as_str());
+
+    println!("{} | ({}, {:?}) -> {} = {}", oxygen_generator_average_bytes, oxygen_last_column, oxygen_report, help_oxygen, oxygen_rating);
+
+    let co2_scrubber_bytes = flip_bytes_from_binary(oxygen_generator_average_bytes.as_str());
+    let (co2_last_column, co2_report) = recursive_find_number_with_average_bytes(&co2_scrubber_bytes, reports, 0);
+
+    let help_co2_scrubber = match co2_report.len() {
+        1 => co2_report.first().unwrap(),
+        _ => co2_report.iter()
+            .find(|report| report.chars().nth(co2_last_column) == Some('0'))
+            .unwrap()
+    };
+
+    let scrubber_rating = binary_to_decimal(help_co2_scrubber.as_str());
+    println!("{} | ({}, {:?}) -> {} = {}", co2_scrubber_bytes, co2_last_column, co2_report, help_co2_scrubber, scrubber_rating);
+
+    oxygen_rating * scrubber_rating
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
@@ -69,6 +115,7 @@ mod tests {
         flip_bytes_from_binary,
         find_bit_that_is_average_each_column,
         diagnost_power_consumption,
+        diagnost_life_support
     };
     use std::fs::File;
     use std::io::{BufReader, BufRead};
@@ -133,6 +180,24 @@ mod tests {
         let sample_input = open_test_file();
 
         let values = diagnost_power_consumption(&sample_input);
+
+        assert_eq!(4174964, values);
+    }
+
+    #[test]
+    fn sample_input_second_challenge() {
+        let sample_input = get_sample_input();
+
+        let values = diagnost_life_support(&sample_input);
+
+        assert_eq!(230, values);
+    }
+
+    #[test]
+    fn second_callenge() {
+        let sample_input = open_test_file();
+
+        let values = diagnost_life_support(&sample_input);
 
         assert_eq!(4174964, values);
     }
