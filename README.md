@@ -1,6 +1,6 @@
 # Advent of Code Challenges
 
-This repo serves to train Rust with the [Advent of Code challenges](https://adventofcode.com/2021) that take place on December of each year.
+This repo serves to train Rust with the [Advent of Code challenges](https://adventofcode.com) that take place on December of each year.
 
 I'm creating each branch for each year so you can navigate for each year that I participated.
 The main branch serves only as a template.
