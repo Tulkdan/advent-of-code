@@ -1,12 +1,6 @@
 import day_05
 import gleam/dict
-import gleeunit
-import gleeunit/should
 import simplifile
-
-pub fn main() {
-  gleeunit.main()
-}
 
 pub fn parse_input_test() {
   let assert Ok(file) = simplifile.read("input/day_05.test")
@@ -34,8 +28,8 @@ pub fn parse_input_test() {
     file
     |> day_05.parse_input
 
-  should.equal(rules, dict_of_rules)
-  should.equal(cases, list_of_cases)
+  assert rules == dict_of_rules
+  assert cases == list_of_cases
 }
 
 pub fn filter_correct_cases_test() {
@@ -45,13 +39,13 @@ pub fn filter_correct_cases_test() {
     file
     |> day_05.parse_input
 
-  cases
-  |> day_05.filter_cases(rules)
-  |> should.equal([
-    ["75", "47", "61", "53", "29"],
-    ["97", "61", "53", "29", "13"],
-    ["75", "29", "13"],
-  ])
+  assert cases
+    |> day_05.filter_cases(rules)
+    == [
+      ["75", "47", "61", "53", "29"],
+      ["97", "61", "53", "29", "13"],
+      ["75", "29", "13"],
+    ]
 }
 
 pub fn calculate_middle_number_of_cases_test() {
@@ -61,10 +55,10 @@ pub fn calculate_middle_number_of_cases_test() {
     file
     |> day_05.parse_input
 
-  cases
-  |> day_05.filter_cases(rules)
-  |> day_05.calculate_middle_number
-  |> should.equal(143)
+  assert cases
+    |> day_05.filter_cases(rules)
+    |> day_05.calculate_middle_number
+    == 143
 }
 
 pub fn calculate_middle_number_of_cases_for_real_test() {
@@ -74,8 +68,8 @@ pub fn calculate_middle_number_of_cases_for_real_test() {
     file
     |> day_05.parse_input
 
-  cases
-  |> day_05.filter_cases(rules)
-  |> day_05.calculate_middle_number
-  |> should.equal(5374)
+  assert cases
+    |> day_05.filter_cases(rules)
+    |> day_05.calculate_middle_number
+    == 5374
 }
