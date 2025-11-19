@@ -36,17 +36,16 @@ fn validate_calibration(
   numbers_to_operate: List(Int),
   target: Int,
   acc_number: Int,
-  acc: Bool,
 ) -> Bool {
   case numbers_to_operate {
     [] -> acc_number == target
     [number, ..rest] -> {
-      let sum = validate_calibration(rest, target, acc_number + number, acc)
+      let sum = validate_calibration(rest, target, acc_number + number)
       use <- bool.guard(when: sum, return: sum)
 
       case acc_number {
-        0 -> validate_calibration(rest, target, number, acc)
-        n -> validate_calibration(rest, target, n * number, acc)
+        0 -> validate_calibration(rest, target, number)
+        n -> validate_calibration(rest, target, n * number)
       }
     }
   }
@@ -58,7 +57,7 @@ pub fn filter_valid_calibration(
   calibrations
   |> list.filter(fn(calibration) {
     let #(target, numbers_to_operate) = calibration
-    validate_calibration(numbers_to_operate, target, 0, False)
+    validate_calibration(numbers_to_operate, target, 0)
   })
 }
 
@@ -74,29 +73,28 @@ fn validate_calibration_v2(
   numbers_to_operate: List(Int),
   target: Int,
   acc_number: Int,
-  acc: Bool,
 ) -> Bool {
   case numbers_to_operate {
     [] -> acc_number == target
     [number, ..rest] -> {
-      let sum = validate_calibration_v2(rest, target, acc_number + number, acc)
+      let sum = validate_calibration_v2(rest, target, acc_number + number)
       use <- bool.guard(when: sum, return: sum)
 
       let mul = case acc_number {
-        0 -> validate_calibration_v2(rest, target, number, acc)
-        n -> validate_calibration_v2(rest, target, n * number, acc)
+        0 -> validate_calibration_v2(rest, target, number)
+        n -> validate_calibration_v2(rest, target, n * number)
       }
       use <- bool.guard(when: mul, return: mul)
 
       case acc_number {
-        0 -> validate_calibration_v2(rest, target, number, acc)
+        0 -> validate_calibration_v2(rest, target, number)
         n -> {
           let concat =
             { int.to_string(n) <> int.to_string(number) }
             |> int.parse
             |> result.unwrap(0)
 
-          validate_calibration_v2(rest, target, concat, acc)
+          validate_calibration_v2(rest, target, concat)
         }
       }
     }
@@ -109,7 +107,7 @@ pub fn filter_valid_calibration_v2(
   calibrations
   |> list.filter(fn(calibration) {
     let #(target, numbers_to_operate) = calibration
-    validate_calibration_v2(numbers_to_operate, target, 0, False)
+    validate_calibration_v2(numbers_to_operate, target, 0)
   })
 }
 
