@@ -1,3 +1,4 @@
+import file_streams/file_stream.{type FileStream}
 import gleam/bool
 import gleam/int
 import gleam/list
@@ -110,4 +111,26 @@ pub fn filter_valid_calibration_v2(
     let #(target, numbers_to_operate) = calibration
     validate_calibration_v2(numbers_to_operate, target, 0, False)
   })
+}
+
+fn rec_read_stream(
+  stream: FileStream,
+  acc: List(Calibration),
+) -> List(Calibration) {
+  case file_stream.read_line(stream) {
+    Ok(line) -> {
+      let parsed_line =
+        line
+        |> string.trim_end
+        |> parse_line
+
+      rec_read_stream(stream, [parsed_line, ..acc])
+    }
+    Error(_) -> acc
+  }
+}
+
+pub fn read_stream_file_into_string(input: FileStream) -> List(Calibration) {
+  input
+  |> rec_read_stream([])
 }
