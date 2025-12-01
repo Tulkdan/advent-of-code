@@ -38,19 +38,16 @@ fn calculate_commands(commands: List(Command), position: Int, acc: Int) -> Int {
     [] -> acc
     [command, ..rest] -> {
       let assert Ok(new_value) = case command {
-        Command(operation: "L", value: v) -> {
+        Command(operation: "R", value: v) -> position + v
+        Command(operation: _, value: v) -> {
           let calc = position - v
 
-          use <- bool.guard(when: calc < 0, return: int.modulo(100 + calc, 100))
+          use <- bool.guard(when: calc < 0, return: 100 + calc)
 
           calc
-            |> int.modulo(100)
-        }
-        Command(operation: _, value: v) -> {
-          position + v
-            |> int.modulo(100)
         }
       }
+      |> int.modulo(100)
 
       let new_acc = case new_value {
         0 -> acc + 1

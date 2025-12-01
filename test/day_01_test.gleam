@@ -30,7 +30,6 @@ pub fn calculate_distances_for_real_test() {
 
   assert file
     |> day_01.format_input
-    |> echo
     |> day_01.calculate_distances
     == 1105
 }
