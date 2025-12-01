@@ -1,85 +1,68 @@
+import gleam/bool
 import gleam/int
 import gleam/list
 import gleam/string
 
-fn create_lists(
+pub type Command {
+  Command(operation: String, value: Int)
+}
+
+fn parse_input_into_commands(
   inputs: List(String),
-  acc: #(List(Int), List(Int)),
-) -> #(List(Int), List(Int)) {
+  acc: List(Command),
+) -> List(Command) {
   case inputs {
     [] | [""] -> acc
     [input, ..rest] -> {
-      let assert Ok(#(first, second)) = string.split_once(input, "   ")
-      let #(left_list, right_list) = acc
-      let assert Ok(left_num) = int.parse(first)
-      let assert Ok(right_num) = int.parse(second)
+      let assert Ok(#(operation, str_value)) = string.pop_grapheme(input)
+      let assert Ok(value) = int.parse(str_value)
 
-      create_lists(rest, #([left_num, ..left_list], [right_num, ..right_list]))
+      [
+        Command(operation: operation, value: value),
+        ..acc
+      ]
+      |> parse_input_into_commands(rest, _)
     }
   }
 }
 
-pub fn format_input_into_lists(input: String) -> #(List(Int), List(Int)) {
+pub fn format_input(input: String) -> List(Command) {
   input
   |> string.split("\n")
-  |> create_lists(#([], []))
+  |> parse_input_into_commands([])
+  |> list.reverse
 }
 
-fn calculate_distance_between_lists(
-  acc: Int,
-  left: List(Int),
-  right: List(Int),
-) -> Int {
-  case left, right {
-    [l, ..l_rest], [r, ..r_rest] ->
-      int.absolute_value(l - r)
-      |> int.add(acc)
-      |> calculate_distance_between_lists(l_rest, r_rest)
-    _, _ -> acc
-  }
-}
+fn calculate_commands(commands: List(Command), position: Int, acc: Int) -> Int {
+  case commands {
+    [] -> acc
+    [command, ..rest] -> {
+      let assert Ok(new_value) = case command {
+        Command(operation: "L", value: v) -> {
+          let calc = position - v
 
-pub fn calculate_distances(inputs: #(List(Int), List(Int))) -> Int {
-  let #(left_list, right_list) = inputs
-  let left = list.sort(left_list, int.compare)
-  let right = list.sort(right_list, int.compare)
+          use <- bool.guard(when: calc < 0, return: int.modulo(100 + calc, 100))
 
-  0
-  |> calculate_distance_between_lists(left, right)
-}
+          calc
+            |> int.modulo(100)
+        }
+        Command(operation: _, value: v) -> {
+          position + v
+            |> int.modulo(100)
+        }
+      }
 
-fn find_numbers_appears_in_list(
-  acc: List(#(Int, Int)),
-  input: Int,
-) -> List(#(Int, Int)) {
-  case acc {
-    [#(idx_num, times), ..rest] if idx_num == input -> [
-      #(idx_num, times + 1),
-      ..rest
-    ]
-    [first, ..rest] -> [first, ..find_numbers_appears_in_list(rest, input)]
-    _ -> [#(input, 1), ..acc]
-  }
-}
+      let new_acc = case new_value {
+        0 -> acc + 1
+        _ -> acc
+      }
 
-pub fn calculate_similarity(inputs: #(List(Int), List(Int))) -> Int {
-  let #(left_list, right_list) = inputs
-
-  let number_times_in_right =
-    right_list
-    |> list.fold([], find_numbers_appears_in_list)
-
-  left_list
-  |> list.map(fn(input) {
-    case
-      list.find(number_times_in_right, fn(x) {
-        let #(idx, _) = x
-        idx == input
-      })
-    {
-      Ok(#(_, qtt)) -> input * qtt
-      _ -> 0
+      calculate_commands(rest, new_value, new_acc)
     }
-  })
-  |> int.sum
+  }
+}
+
+pub fn calculate_distances(commands: List(Command)) -> Int {
+  commands
+  |> calculate_commands(50, 0)
 }
