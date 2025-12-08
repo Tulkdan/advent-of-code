@@ -1,3 +1,5 @@
+import gleam/erlang/process
+import gleam/otp/actor
 import gleam/bool
 import gleam/int
 import gleam/list
@@ -38,10 +40,32 @@ fn get_highest_numbers(bank: List(Int), acc: #(Int, Int)) -> #(Int, Int) {
 }
 
 pub fn calculate_highest_jolts(banks: List(List(Int))) -> Int {
+  let assert Ok(actor) =
+    actor.new(0)
+    |> actor.on_message(handle_message)
+    |> actor.start
+
   banks
-  |> list.map(fn(bank) {
-    let #(_, v) = get_highest_numbers(bank, #(0, 0))
-    v
-  })
-  |> list.fold(0, fn(acc, value) { acc + value })
+  |> list.each(fn(bank) { process.send(actor.data, FindHighest(bank)) })
+
+  actor.data
+  |> process.call(100, GetValue)
+}
+
+type Message {
+  FindHighest(List(Int))
+  GetValue(process.Subject(Int))
+}
+
+fn handle_message(state: Int, message: Message) {
+  case message {
+    FindHighest(bank) -> {
+      let #(_, v) = get_highest_numbers(bank, #(0, 0))
+      actor.continue(v + state)
+    }
+    GetValue(reply) -> {
+      process.send(reply, state)
+      actor.stop()
+    }
+  }
 }
