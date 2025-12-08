@@ -33,4 +33,3 @@ pub fn calculate_distances_for_real_test() {
     |> day_01.calculate_distances
     == 1105
 }
-

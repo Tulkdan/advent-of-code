@@ -17,10 +17,7 @@ fn parse_input_into_commands(
       let assert Ok(#(operation, str_value)) = string.pop_grapheme(input)
       let assert Ok(value) = int.parse(str_value)
 
-      [
-        Command(operation: operation, value: value),
-        ..acc
-      ]
+      [Command(operation: operation, value: value), ..acc]
       |> parse_input_into_commands(rest, _)
     }
   }
@@ -37,17 +34,18 @@ fn calculate_commands(commands: List(Command), position: Int, acc: Int) -> Int {
   case commands {
     [] -> acc
     [command, ..rest] -> {
-      let assert Ok(new_value) = case command {
-        Command(operation: "R", value: v) -> position + v
-        Command(operation: _, value: v) -> {
-          let calc = position - v
+      let assert Ok(new_value) =
+        case command {
+          Command(operation: "R", value: v) -> position + v
+          Command(operation: _, value: v) -> {
+            let calc = position - v
 
-          use <- bool.guard(when: calc < 0, return: 100 + calc)
+            use <- bool.guard(when: calc < 0, return: 100 + calc)
 
-          calc
+            calc
+          }
         }
-      }
-      |> int.modulo(100)
+        |> int.modulo(100)
 
       let new_acc = case new_value {
         0 -> acc + 1

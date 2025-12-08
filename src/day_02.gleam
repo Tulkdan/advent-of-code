@@ -1,9 +1,9 @@
 import gleam/bool
+import gleam/erlang/process
 import gleam/int
 import gleam/list
-import gleam/string
 import gleam/otp/actor
-import gleam/erlang/process
+import gleam/string
 
 pub type Range {
   Range(min: Int, max: Int)
@@ -12,8 +12,8 @@ pub type Range {
 pub fn format_input(input: String) -> List(Range) {
   input
   |> string.split(",")
-  |> list.map(fn (range) {
-    let assert [min, max] = 
+  |> list.map(fn(range) {
+    let assert [min, max] =
       range
       |> string.replace(each: "\n", with: "")
       |> string.split("-")
@@ -39,32 +39,27 @@ fn find_duplicates(range: Range, acc: List(Int)) -> List(Int) {
 
   use <- bool.guard(when: min > max, return: acc)
 
-  case min |> int.to_string |> is_repeated {
-    True -> find_duplicates(
-      Range(min: min + 1, max: max),
-      [min, ..acc]
-    )
-    False -> find_duplicates(
-      Range(min: min + 1, max: max),
-      acc
-    )
+  let new_acc = case min |> int.to_string |> is_repeated {
+    True -> [min, ..acc]
+    False -> acc
   }
+
+  Range(min: min + 1, max: max)
+  |> find_duplicates(new_acc)
 }
 
 pub fn calculate_duplicates(ranges: List(Range)) -> Int {
-  let assert Ok(actor) = 
+  let assert Ok(actor) =
     actor.new([])
     |> actor.on_message(handle_message)
     |> actor.start
 
   ranges
-  |> list.each(fn (range) {
-    process.send(actor.data, FindDuplicates(range))
-  })
+  |> list.each(fn(range) { process.send(actor.data, FindDuplicates(range)) })
 
   actor.data
-  |> process.call(600, GetValue)
-  |> list.fold(0, fn (a, b) { a + b })
+  |> process.call(1000, GetValue)
+  |> list.fold(0, fn(a, b) { a + b })
 }
 
 type Message {
@@ -85,6 +80,4 @@ fn handle_message(state: List(Int), message: Message) {
       actor.stop()
     }
   }
-
 }
-
