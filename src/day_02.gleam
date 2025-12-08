@@ -2,6 +2,8 @@ import gleam/bool
 import gleam/int
 import gleam/list
 import gleam/string
+import gleam/otp/actor
+import gleam/erlang/process
 
 pub type Range {
   Range(min: Int, max: Int)
@@ -50,12 +52,39 @@ fn find_duplicates(range: Range, acc: List(Int)) -> List(Int) {
 }
 
 pub fn calculate_duplicates(ranges: List(Range)) -> Int {
-  ranges
-  |> list.fold(0, fn (acc, range) {
-    let arr = range
-    |> find_duplicates([])
-    |> list.fold(0, fn (a, b) { a + b })
+  let assert Ok(actor) = 
+    actor.new([])
+    |> actor.on_message(handle_message)
+    |> actor.start
 
-    acc + arr
+  ranges
+  |> list.each(fn (range) {
+    process.send(actor.data, FindDuplicates(range))
   })
+
+  actor.data
+  |> process.call(600, GetValue)
+  |> list.fold(0, fn (a, b) { a + b })
 }
+
+type Message {
+  FindDuplicates(Range)
+  GetValue(process.Subject(List(Int)))
+}
+
+fn handle_message(state: List(Int), message: Message) {
+  case message {
+    FindDuplicates(range) -> {
+      range
+      |> find_duplicates([])
+      |> list.append(state)
+      |> actor.continue
+    }
+    GetValue(reply) -> {
+      process.send(reply, state)
+      actor.stop()
+    }
+  }
+
+}
+
