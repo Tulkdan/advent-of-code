@@ -1,8 +1,8 @@
-import gleam/erlang/process
-import gleam/otp/actor
 import gleam/bool
+import gleam/erlang/process
 import gleam/int
 import gleam/list
+import gleam/otp/actor
 import gleam/string
 
 pub fn format_input(input: String) -> List(List(Int)) {
