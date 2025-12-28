@@ -1,6 +1,5 @@
 import gleam/int
 import gleam/list
-import gleam/set
 import gleam/string
 
 pub fn format_input(input: String) -> #(List(#(Int, Int)), List(Int)) {
